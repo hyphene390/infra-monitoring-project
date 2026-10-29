@@ -1,0 +1,13 @@
+*.log
+logs/
+*.tmp
+*.swp
+*~
+.DS_Store
+build/
+dist/
+*.tar.gz
+*.zip
+.env
+.vscode/
+.idea/
