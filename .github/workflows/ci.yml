@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Проверка скриптов и конфигурации
+    runs-on: ubuntu-latest
+    steps:
+      - name: Получение кода
+        uses: actions/checkout@v4
+
+      - name: Проверка синтаксиса Bash-скриптов
+        run: |
+          bash -n check_api.sh
+          bash -n analyze_logs.sh
+          echo "Синтаксис обоих скриптов корректен"
+
+      - name: Тест check_api.sh — ожидается код возврата 0
+        run: |
+          chmod +x check_api.sh
+          ./check_api.sh https://httpbin.org/status/200
+
+      - name: Тест check_api.sh — невалидный URL, ожидается код возврата 1
+        run: |
+          if ./check_api.sh http://nonexistent.invalid; then
+            echo "Ошибка: ожидался код возврата 1"
+            exit 1
+          fi
+          echo "Скрипт корректно вернул код 1"
+
+      - name: Тест analyze_logs.sh
+        run: |
+          chmod +x analyze_logs.sh
+          ./analyze_logs.sh
+          test "$(wc -l < access.log)" -ge 300
+
+      - name: Проверка docker-compose.yml
+        run: docker compose config --quiet && echo "docker-compose.yml валиден"
